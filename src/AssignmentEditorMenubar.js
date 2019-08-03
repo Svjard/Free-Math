@@ -6,6 +6,8 @@ import LogoHomeNav from './LogoHomeNav.js';
 import { convertToCurrentFormat } from './TeacherInteractiveGrader.js';
 import { LightButton } from './Button.js';
 
+var gapi = window.gapi;
+
 // Assignment properties
 var ASSIGNMENT_NAME = 'ASSIGNMENT_NAME';
 var PROBLEMS = 'PROBLEMS';
@@ -39,8 +41,56 @@ function saveAssignment() {
     var blob = new Blob([JSON.stringify({
         PROBLEMS : makeBackwardsCompatible(window.store.getState())[PROBLEMS]})],
         {type: "text/plain;charset=utf-8"});
-    saveAs(blob, window.store.getState()[ASSIGNMENT_NAME] + '.math');
+    var filename = window.store.getState()[ASSIGNMENT_NAME] + '.math'
+
+    //AIzaSyC8-uGZtfvY-iZkOEORGq2ZpyBTlvRPI94
+
+    var metadata = {
+        'name': filename, // Filename at Google Drive
+        'mimeType': 'text/plain', // mimeType at Google Drive
+        //'parents': ['### folder ID ###'], // Folder ID at Google Drive
+    };
+
+    // 1. Load the JavaScript client library.
+    gapi.load('client', start);
+
+    var accessToken = gapi.auth2.getToken().access_token; // Here gapi is used for retrieving the access token.
+    var form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+    form.append('file', blob);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('post', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id');
+    xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+    xhr.responseType = 'json';
+    xhr.onload = () => {
+        console.log(xhr.response.id); // Retrieve uploaded file ID.
+    };
+    xhr.send(form);
+    //saveAs(blob, filename);
 }
+
+function start() {
+  // 2. Initialize the JavaScript client library.
+  gapi.client.init({
+    'apiKey': 'AIzaSyC8-uGZtfvY-iZkOEORGq2ZpyBTlvRPI94',
+    // Your API key will be automatically added to the Discovery Document URLs.
+    'discoveryDocs': ['https://people.googleapis.com/$discovery/rest'],
+    // clientId and scope are optional if auth is not required.
+    'clientId': '412119895810-tji5c4tj6so2jmde8k3t1l3kaui5g4ca.apps.googleusercontent.com',
+    'scope': 'profile',
+  }).then(function() {
+    // 3. Initialize and make the API request.
+    return gapi.client.people.people.get({
+      'resourceName': 'people/me',
+      'requestMask.includeField': 'person.names'
+    });
+  }).then(function(response) {
+    console.log(response.result);
+  }, function(reason) {
+    console.log('Error: ' + reason.result.error.message);
+  });
+};
 
 function makeBackwardsCompatible(newDoc) {
     newDoc[PROBLEMS].forEach(function (problem) {
