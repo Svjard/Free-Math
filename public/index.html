@@ -269,12 +269,17 @@ http://mozilla.org/MPL/2.0/
         xhr = new XMLHttpRequest();
         xhr.open('put', 'https://www.googleapis.com/upload/drive/v2/files/' + googleId + '?uploadType=multipart');
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-        xhr.onload = function() {
+        xhr.onload = function(a, b, c) {
           console.log(xhr);
-            if (xhr.status == 200) {
-                alert("Saved successfully to google drive");
+            if (this.readyState === 4) {
+                if (this.status == 200) {
+                    callback();
+                } else {
+                    console.log(this.status + " " + this.responseText);
+                    alert(this.status + " " + this.responseText);
+                }
             } else {
-                alert(xhr.responseText);
+                // ignore other events for request still in progress
             }
         };
         xhr.send(payload);

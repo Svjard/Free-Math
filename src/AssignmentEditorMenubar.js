@@ -17,6 +17,15 @@ var SET_ASSIGNMENT_NAME = 'SET_ASSIGNMENT_NAME';
 // a document from a file
 var SET_ASSIGNMENT_CONTENT = 'SET_ASSIGNMENT_CONTENT';
 
+// state for google drive auto-save
+// action
+var SET_GOOGLE_DRIVE_STATE = 'GOOGLE_DRIVE_STATE';
+// Property name and possible values
+var GOOGLE_DRIVE_STATE = 'GOOGLE_DRIVE_STATE';
+var SAVING = 'SAVING';
+var ALL_SAVED = 'ALL_SAVED';
+var DIRTY_WORKING_COPY = 'DIRTY_WORKING_COPY';
+
 function saveAssignment() {
     var atLeastOneProblemNumberNotSet = false;
     window.store.getState()[PROBLEMS].forEach(function(problem, index, array) {
@@ -67,8 +76,9 @@ export function openAssignment(serializedDoc, filename, discardDataWarning, driv
         // well as add the LAST_SHOWN_STEP
         newDoc = convertToCurrentFormat(newDoc);
         window.store.dispatch({type : SET_ASSIGNMENT_CONTENT, 
-            PROBLEMS : newDoc[PROBLEMS], GOOGLE_ID: driveFileId});
-        window.store.dispatch({type : SET_ASSIGNMENT_NAME, ASSIGNMENT_NAME : removeExtension(filename)});
+            PROBLEMS : newDoc[PROBLEMS], GOOGLE_ID: driveFileId,
+            ASSIGNMENT_NAME : removeExtension(filename)});
+        //window.store.dispatch({type : SET_ASSIGNMENT_NAME, ASSIGNMENT_NAME : removeExtension(filename)});
     } catch (e) {
         console.log(e);
         alert("Error reading the file, Free Math can only read files with " +
@@ -107,6 +117,8 @@ var AssignmentEditorMenubar = createReactClass({
                     <LogoHomeNav /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                     <div className="navBarElms" style={{float: "right", verticalAlign:"top", lineHeight : 1}}>
+                        <span style={{margin : "0px 15px 0px 15px"}}>
+                            {this.props.value[GOOGLE_DRIVE_STATE]}</span>
                         Filename &nbsp;&nbsp;
                         <input type="text" id="assignment-name-text" size="35"
                                name="assignment name"
@@ -134,7 +146,6 @@ var AssignmentEditorMenubar = createReactClass({
                                     );
                                     assignment = new Blob([assignment], {type: 'application/json'});
                                     var googleId = window.store.getState()["GOOGLE_ID"];
-                                    console.log("update in google drive:" + googleId);
                                     if (googleId) {
                                         console.log("update in google drive:" + googleId);
                                         window.updateFileWithBinaryContent(
