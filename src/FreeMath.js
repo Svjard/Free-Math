@@ -101,6 +101,7 @@ let currentNumPendingSaves;
 let currentSaveState ;
 let currentAppMode;
 let currentlyGatheringUpdates;
+let pendingSaves = 0;
 function autoSave() {
     var appState = window.store.getState();
 
@@ -146,7 +147,8 @@ function autoSave() {
                 return;
             }
             currentlyGatheringUpdates = true;
-            window.store.dispatch({type : INCREMENT_PENDING_SAVES, VALUE : 1});
+            //window.store.dispatch({type : INCREMENT_PENDING_SAVES, VALUE : 1});
+            pendingSaves++;
             setTimeout(function() {
                 currentlyGatheringUpdates = false;
                 console.log("update in google drive:" + googleId);
@@ -159,8 +161,9 @@ function autoSave() {
                     googleId,
                     'application/json',
                     function() {
-                        window.store.dispatch({type : INCREMENT_PENDING_SAVES, VALUE : -1});
-                        if (window.store.getState()[PENDING_SAVES] === 0) {
+                        //window.store.dispatch({type : INCREMENT_PENDING_SAVES, VALUE : -1});
+                        pendingSaves--;
+                        if (pendingSaves === 0) {
                             window.store.dispatch(
                                 {type : SET_GOOGLE_DRIVE_STATE, GOOGLE_DRIVE_STATE : ALL_SAVED});
                         }
