@@ -24,13 +24,9 @@ function assignmentReducer(state, action) {
             PROBLEMS : problemListReducer(undefined, action)
         };
     } else {
-        var ret = { ...state,
+        return { ...state,
                  PROBLEMS : problemListReducer(state[PROBLEMS], action)
         };
-        console.log("returning new state from action");
-        console.log(action);
-        console.log(ret);
-        return ret;
     }
 }
 
